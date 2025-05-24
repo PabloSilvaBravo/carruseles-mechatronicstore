@@ -82,19 +82,27 @@
   float: none !important; 
 }
 
-/* Responsividad */
+
+/* Responsividad - AJUSTES IMPORTANTES AQUÍ */
 @media (max-width: 767px) {
   .custom-logo-carousel-item {
-    /* Altura anterior móvil: 60px. Nueva altura: 60px * 1.5 = 90px */
-    height: 90px; 
-    padding: 0 8px; 
+    /* Altura ajustada (90px para móvil) */
+    height: 90px;
+    padding: 0 8px;
+    /* NUEVO: Definir un ancho base para los ítems en móvil.
+      Aproximadamente 3.5 logos visibles (100 / 3.5 ≈ 28.57).
+    */
+    flex-basis: 28.5% !important;
+    width: 28.5% !important; /* Asegura que el ancho se aplique consistentemente */
   }
+
   .custom-logo-carousel-item img {
-    /* Max-altura anterior móvil: 40px. Nueva max-altura: 40px * 1.5 = 60px */
-    max-height: 60px; 
+    /* Max-altura ajustada (60px para móvil) */
+    max-height: 60px;
   }
+
   .custom-logo-carousel-track.custom-logo-carousel-initialized {
-    /* Duración anterior móvil: 50s. Nueva duración: 50s / 1.5 = 33.33s (aprox 33s) */
+    /* Velocidad ajustada (33s para móvil) */
     animation: scrollInfinitelyMSLogos 33s linear infinite;
   }
 }
