@@ -1,0 +1,100 @@
+/* --- Custom Logo Carousel Styles (Adjusted) --- */
+.custom-logo-carousel-container {
+  overflow: hidden;
+  cursor: grab;
+  width: 100%;
+  position: relative;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  padding: 10px 0;
+}
+
+.custom-logo-carousel-container.active {
+  cursor: grabbing;
+}
+
+.custom-logo-carousel-track {
+  display: flex !important; 
+  flex-wrap: nowrap !important;
+  width: fit-content; 
+  will-change: transform;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.custom-logo-carousel-track.custom-logo-carousel-initialized {
+    /* Duración anterior: 80s. Nueva duración: 80s / 1.5 = 53.33s (aprox) */
+    animation: scrollInfinitelyMSLogos 53s linear infinite; 
+}
+
+.custom-logo-carousel-item {
+  flex: 0 0 auto !important;
+  padding: 0 10px; 
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Altura anterior: 70px. Nueva altura: 70px * 1.5 = 105px */
+  height: 105px; 
+}
+
+.custom-logo-carousel-item .col-inner {
+    width: 100%; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+.custom-logo-carousel-item .col-inner a,
+.custom-logo-carousel-item .col-inner a .img-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+
+.custom-logo-carousel-item img {
+  max-width: 100%;
+  width: auto; 
+  height: auto;
+  /* Max-altura anterior: 55px. Nueva max-altura: 55px * 1.5 = 82.5px (aprox 82px) */
+  max-height: 82px; 
+  object-fit: contain;
+  border-radius: 6px;
+  pointer-events: none; 
+}
+
+@keyframes scrollInfinitelyMSLogos {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%); 
+  }
+}
+
+.custom-logo-carousel-track > .col.custom-logo-carousel-item {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  float: none !important; 
+}
+
+/* Responsividad */
+@media (max-width: 767px) {
+  .custom-logo-carousel-item {
+    /* Altura anterior móvil: 60px. Nueva altura: 60px * 1.5 = 90px */
+    height: 90px; 
+    padding: 0 8px; 
+  }
+  .custom-logo-carousel-item img {
+    /* Max-altura anterior móvil: 40px. Nueva max-altura: 40px * 1.5 = 60px */
+    max-height: 60px; 
+  }
+  .custom-logo-carousel-track.custom-logo-carousel-initialized {
+    /* Duración anterior móvil: 50s. Nueva duración: 50s / 1.5 = 33.33s (aprox 33s) */
+    animation: scrollInfinitelyMSLogos 33s linear infinite;
+  }
+}
