@@ -1,48 +1,40 @@
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof mlcCarouselSettings === 'undefined' || typeof mlcCarouselSettings.targetClass === 'undefined') {
-        console.error('MS Store Logo Carousel (Plugin JS): mlcCarouselSettings no definido o targetClass no encontrada en settings.');
         return;
     }
 
     const targetClass = mlcCarouselSettings.targetClass;
-    console.log('MS Store Logo Carousel (Plugin JS): DOMContentLoaded. Buscando elemento con clase: .' + targetClass);
-
     const carouselTrack = document.querySelector('.' + targetClass);
 
     if (!carouselTrack) {
-        console.error('MS Store Logo Carousel (Plugin JS): Elemento con clase ".' + targetClass + '" NO ENCONTRADO. Asegúrate de haber añadido la clase en UX Builder.');
         return;
     }
-    console.log('MS Store Logo Carousel (Plugin JS): Elemento objetivo encontrado:', carouselTrack);
 
-    if (carouselTrack.classList.contains('custom-logo-carousel-initialized')) {
-        console.warn('MS Store Logo Carousel (Plugin JS): El carrusel para el elemento encontrado ya fue inicializado.');
+    if (carouselTrack.classList.contains('mlc-initialized')) {
         return;
     }
-    carouselTrack.classList.add('custom-logo-carousel-initialized');
+    carouselTrack.classList.add('mlc-initialized');
 
     const carouselContainer = document.createElement('div');
-    carouselContainer.classList.add('custom-logo-carousel-container');
-
+    carouselContainer.classList.add('mlc-logo-carousel-container');
+    
     if (carouselTrack.parentNode) {
         carouselTrack.parentNode.insertBefore(carouselContainer, carouselTrack);
     } else {
-        console.error('MS Store Logo Carousel (Plugin JS): El elemento objetivo no tiene un nodo padre.');
         return; 
     }
     carouselContainer.appendChild(carouselTrack);
-
-    carouselTrack.classList.add('custom-logo-carousel-track');
-
+    
+    carouselTrack.classList.add('mlc-logo-carousel-track');
+    
     const logoItems = Array.from(carouselTrack.children).filter(el => el.nodeType === 1 && el.classList.contains('col'));
-
+    
     if (logoItems.length === 0) {
-        console.warn('MS Store Logo Carousel (Plugin JS): No se encontraron elementos hijos con la clase "col" para usar como ítems.');
         return;
     }
 
     logoItems.forEach((item) => {
-        item.classList.add('custom-logo-carousel-item');
+        item.classList.add('mlc-logo-carousel-item');
         const img = item.querySelector('img');
         if (img && !img.hasAttribute('loading')) {
             img.loading = 'lazy';
@@ -53,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (originalItemCount > 0) {
         for (let i = 0; i < originalItemCount; i++) {
             const clone = logoItems[i].cloneNode(true);
+            clone.classList.add('mlc-cloned-item');
             carouselTrack.appendChild(clone);
         }
     }
@@ -61,20 +54,22 @@ document.addEventListener('DOMContentLoaded', function() {
     let startX;
     let scrollLeftTrack; 
     let isDragging = false;
+    const dragThreshold = 10; // Píxeles que hay que mover para considerar un drag
 
+    // --- Manejadores para Mouse ---
     function handleMouseDown(e) {
         isDown = true;
         isDragging = false;
         carouselContainer.classList.add('active');
         startX = e.pageX - carouselContainer.offsetLeft;
         scrollLeftTrack = carouselContainer.scrollLeft;
-        if (getComputedStyle(carouselTrack).animationName !== 'none') { // Verifica si hay animación aplicada
+        if (getComputedStyle(carouselTrack).animationName !== 'none') {
             carouselTrack.style.animationPlayState = 'paused';
         }
     }
 
     function handleMouseLeaveCarousel() {
-        // Lógica para cuando el mouse sale del carrusel mientras está presionado
+        // Si se suelta fuera, el mouseup global lo maneja
     }
 
     function handleMouseUpGlobal() {
@@ -89,33 +84,76 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function handleMouseMove(e) {
         if (!isDown) return;
-        if (!isDragging && Math.abs(e.pageX - (startX + carouselContainer.offsetLeft)) > 5) {
+        if (!isDragging && Math.abs(e.pageX - (startX + carouselContainer.offsetLeft)) > dragThreshold) {
             isDragging = true;
         }
         if(isDragging) {
+            e.preventDefault(); // Prevenir selección de texto
             const x = e.pageX - carouselContainer.offsetLeft;
             const walk = (x - startX) * 1.5; 
             carouselContainer.scrollLeft = scrollLeftTrack - walk;
         }
     }
 
+    // --- Manejadores para Touch ---
+    function handleTouchStart(e) {
+        isDown = true;
+        isDragging = false;
+        carouselContainer.classList.add('active');
+        startX = e.touches[0].pageX - carouselContainer.offsetLeft;
+        scrollLeftTrack = carouselContainer.scrollLeft;
+        if (getComputedStyle(carouselTrack).animationName !== 'none') {
+            carouselTrack.style.animationPlayState = 'paused';
+        }
+    }
+
+    function handleTouchMove(e) {
+        if (!isDown) return;
+        if (!isDragging && Math.abs(e.touches[0].pageX - (startX + carouselContainer.offsetLeft)) > dragThreshold) {
+            isDragging = true;
+        }
+        if (isDragging) {
+            e.preventDefault(); // ¡CLAVE! Prevenir el scroll de la página para controlar el carrusel
+            const x = e.touches[0].pageX - carouselContainer.offsetLeft;
+            const walk = (x - startX) * 1.5;
+            carouselContainer.scrollLeft = scrollLeftTrack - walk;
+        }
+    }
+
+    function handleTouchEnd() {
+        if (!isDown) return;
+        isDown = false;
+        carouselContainer.classList.remove('active');
+        if (getComputedStyle(carouselTrack).animationName !== 'none') {
+            carouselTrack.style.animationPlayState = 'running';
+        }
+         setTimeout(() => isDragging = false, 0);
+    }
+
+    // Asignar Event Listeners
     carouselContainer.addEventListener('mousedown', handleMouseDown);
     carouselContainer.addEventListener('mouseleave', handleMouseLeaveCarousel);
-    document.addEventListener('mouseup', handleMouseUpGlobal);
+    document.addEventListener('mouseup', handleMouseUpGlobal); 
     carouselContainer.addEventListener('mousemove', handleMouseMove);
 
+    carouselContainer.addEventListener('touchstart', handleTouchStart, { passive: true }); // passive:true si no se usa preventDefault en touchstart
+    carouselContainer.addEventListener('touchmove', handleTouchMove, { passive: false }); // passive:false ES NECESARIO para que e.preventDefault() funcione
+    carouselContainer.addEventListener('touchend', handleTouchEnd);
+    carouselContainer.addEventListener('touchcancel', handleTouchEnd); // También manejar touchcancel
+
+    // Pausa/Reanudar animación con hover
     carouselContainer.addEventListener('mouseenter', () => {
         if (getComputedStyle(carouselTrack).animationName !== 'none') {
             carouselTrack.style.animationPlayState = 'paused';
         }
     });
-
     carouselContainer.addEventListener('mouseleave', () => { 
         if (!isDown && getComputedStyle(carouselTrack).animationName !== 'none') {
              carouselTrack.style.animationPlayState = 'running';
         }
     });
-
+    
+    // Prevenir acción de enlaces si hubo drag
     Array.from(carouselTrack.querySelectorAll('a')).forEach(link => {
         link.addEventListener('click', function(e) {
             if (isDragging) {
@@ -123,6 +161,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
-    console.log('MS Store Logo Carousel (Plugin JS): Inicialización completa para el elemento con clase ".' + targetClass + '".');
 });
